@@ -1,0 +1,7 @@
+
+DEBUG = True
+
+ASANA = {
+    'url': '...',
+    'token': '...',
+}

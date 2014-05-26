@@ -1,0 +1,4 @@
+Flask==0.10.1
+asana==0.0.5
+gunicorn==18.0
+

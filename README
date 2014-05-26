@@ -1,0 +1,19 @@
+gitlab hooks written in python
+
+support for part of Asana
+
+
+depend Python2.7
+
+no licenes!
+
+#### how to run it
+
+    gunicron -w 1 -b 127.0.0.1:8891 ./server.py
+
+
+>
+
+    说明： gitlab的hook分为web hook和system hook两种，这里只针对web hook。
+    gitlab向配置的web hook的url发送http消息，为了实现hook的功能要实现一个简单的服务，
+    接收后格式化再重新处理，可以转发到其它服务或执行预设脚本
