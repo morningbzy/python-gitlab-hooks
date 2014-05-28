@@ -1,7 +1,4 @@
 
 DEBUG = True
 
-ASANA = {
-    'url': '...',
-    'token': '...',
-}
+ASANA_TOKEN = '...'
