@@ -7,23 +7,22 @@ import json
 import re
 
 
-RE_ASANA_TEXT_ID = re.compile('.*#(\d+).*')
+RE_ASANA_TEXT_ID = re.compile('#(\d+)')
 RE_ASANA_URL_ID = re.compile('.*https://app.asana.com/(\d+)/(\d+)/(\d+).*')
 
-
 def filter_asana_task_id(message):
-    task_id = None
+    task_ids = []
 
     result = RE_ASANA_TEXT_ID.findall(message)
     if result:
-        task_id = result[-1]
+        task_ids += result
 
-    if task_id is None:
+    if task_ids is None:
         result = RE_ASANA_URL_ID.findall(message)
         if result:
-            task_id = result[0][-1]
+            task_ids += map(lambda x: x[-1], result)
 
-    return int(task_id)
+    return map(int, task_ids)
 
 
 app = Flask(__name__)
@@ -37,21 +36,31 @@ def asana_hook():
         client = asana.AsanaAPI(settings.ASANA_TOKEN, debug=settings.DEBUG)
 
         # gitlab hook data format https://gitlab.com/help/web_hooks
-        last_commit = data['commits'][-1]
-        task_id = filter_asana_task_id(last_commit['message'])
+        ref = data['ref'].split('/', 2)[-1]
 
-        if task_id:
-            message = u'{name} push to repo {repo}/{ref} \n check: {gitlab_url} \n {message}'.format(
-                name=data['user_name'],
-                repo=data['repository']['name'],
-                ref=data['ref'].split('/')[-1],
-                message=last_commit['message'],
-                gitlab_url=last_commit['url'])
+        # Only auto-generate ASANA comment when commit NOT to 'master'
+        if 'master' in data['ref']:
+            return ''
 
-            client.add_story(task_id, message)
+        commits = data['commits']
+        if commits and 'merge' not in commits[-1]['message'].lower():
+            return ''
+
+        for commit in commits:
+            task_ids = filter_asana_task_id(commit['message'])
+
+            for task_id in task_ids:
+                message = u'{name} push to repo {repo}/{ref} \n check: {gitlab_url} \n {message}'.format(
+                    name=data['user_name'],
+                    repo=data['repository']['name'],
+                    ref=ref,
+                    message=commit['message'],
+                    gitlab_url=commit['url'])
+
+                client.add_story(task_id, message)
 
         # gitlab does not need feedback
-        # but if we dont `return`, flask  will raise 500
+        # but if we don't `return`, flask will raise 500
         return ''
 
 
