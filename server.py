@@ -66,4 +66,3 @@ def asana_hook():
 
 if __name__ == '__main__':
     app.run(debug=settings.DEBUG)
-
