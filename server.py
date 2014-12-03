@@ -10,6 +10,7 @@ import re
 RE_ASANA_TEXT_ID = re.compile('#(\d+)')
 RE_ASANA_URL_ID = re.compile('.*https://app.asana.com/(\d+)/(\d+)/(\d+).*')
 
+
 def filter_asana_task_id(message):
     task_ids = []
 
@@ -22,6 +23,8 @@ def filter_asana_task_id(message):
         if result:
             task_ids += map(lambda x: x[-1], result)
 
+    print 'Parsing ASANA task IDs from message: %s' % message
+    print 'Got: %s' % task_ids
     return map(int, task_ids)
 
 
@@ -57,12 +60,18 @@ def asana_hook():
                     message=commit['message'],
                     gitlab_url=commit['url'])
 
-                client.add_story(task_id, message)
+                print 'Sending to task(ID: %s, message: %s)...' % (task_id, message),
+                try:
+                    client.add_story(task_id, message)
+                    print 'OK'
+                except:
+                    print 'ERROR'
 
         # gitlab does not need feedback
         # but if we don't `return`, flask will raise 500
-        return ''
+    return ''
 
 
 if __name__ == '__main__':
+    print 'Server starting...'
     app.run(debug=settings.DEBUG)
