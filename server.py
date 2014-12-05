@@ -34,6 +34,7 @@ app = Flask(__name__)
 @app.route('/asana', methods=['POST'])
 def asana_hook():
     if request.method == 'POST':
+        print 'Got request:', request.data
         data = json.loads(request.data)
 
         client = asana.AsanaAPI(settings.ASANA_TOKEN, debug=settings.DEBUG)
@@ -46,7 +47,7 @@ def asana_hook():
             return ''
 
         commits = data['commits']
-        if commits and 'merge' not in commits[-1]['message'].lower():
+        if commits and 'merge' in commits[-1]['message'].lower():
             return ''
 
         for commit in commits:
